@@ -330,9 +330,9 @@ const createSvg = (grid, cells, chain, drawOptions, animationOptions) => {
         createSnake(chain, drawOptions, duration),
     ];
     const viewBox = [
-        -drawOptions.sizeCell,
+        -drawOptions.sizeCell * 2.5,
         -drawOptions.sizeCell * 2,
-        width,
+        width + drawOptions.sizeCell * 1.5,
         height,
     ].join(" ");
     const style = generateColorVar(drawOptions) +

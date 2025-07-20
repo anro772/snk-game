@@ -96,9 +96,9 @@ export const createSvg = (
   ];
 
   const viewBox = [
-    -drawOptions.sizeCell,
+    -drawOptions.sizeCell * 2.5,
     -drawOptions.sizeCell * 2,
-    width,
+    width + drawOptions.sizeCell * 1.5,
     height,
   ].join(" ");
 
