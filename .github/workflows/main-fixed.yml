@@ -1,0 +1,33 @@
+name: main
+
+on: [push]
+
+jobs:
+  # Test the SVG-only action
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: generate-snake-game-from-github-contribution-grid
+        id: generate-snake
+        uses: ./
+        with:
+          github_user_name: platane
+          outputs: |
+            dist/github-contribution-grid-snake.svg
+            dist/github-contribution-grid-snake-dark.svg?palette=github-dark
+
+      - name: ensure the generated file exists
+        run: |
+          ls dist
+          test -f dist/github-contribution-grid-snake.svg
+          test -f dist/github-contribution-grid-snake-dark.svg
+
+      - uses: crazy-max/ghaction-github-pages@v4.1.0
+        if: github.ref == 'refs/heads/main'
+        with:
+          target_branch: output
+          build_dir: dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
