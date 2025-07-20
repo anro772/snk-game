@@ -122,7 +122,70 @@ const removeInterpolatedPositions = (arr) => arr.filter((u, i, arr) => {
 ;// CONCATENATED MODULE: ../svg-creator/grid.ts
 
 
-const createGrid = (cells, { sizeDotBorderRadius, sizeDot, sizeCell }, duration) => {
+const createLabels = (cells, sizeCell) => {
+    const svgElements = [];
+    const styles = [];
+    // Add weekday labels
+    const weekdays = ["", "Mon", "", "Wed", "", "Fri", ""];
+    weekdays.forEach((day, i) => {
+        if (day) {
+            svgElements.push(h("text", {
+                x: -sizeCell * 0.5,
+                y: i * sizeCell + sizeCell * 0.7,
+                class: "label",
+                "text-anchor": "end",
+            }).replace("/>", `>${day}</text>`));
+        }
+    });
+    // Add month labels - find unique months from cells with dates
+    const monthPositions = new Map();
+    const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ];
+    cells.forEach((cell) => {
+        if (cell.date && cell.y === 0) {
+            // Only check top row cells
+            const date = new Date(cell.date);
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            if (!monthPositions.has(monthKey)) {
+                monthPositions.set(monthKey, cell.x);
+            }
+        }
+    });
+    monthPositions.forEach((x, monthKey) => {
+        const [, monthIndex] = monthKey.split("-");
+        const monthName = months[parseInt(monthIndex)];
+        svgElements.push(h("text", {
+            x: x * sizeCell + sizeCell * 0.5,
+            y: -sizeCell * 0.5,
+            class: "label",
+            "text-anchor": "start",
+        }).replace("/>", `>${monthName}</text>`));
+    });
+    styles.push(`.label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 11px;
+      fill: #57606a;
+    }
+    @media (prefers-color-scheme: dark) {
+      .label {
+        fill: #8b949e;
+      }
+    }`);
+    return { svgElements, styles };
+};
+const createGrid = (cells, { sizeDotBorderRadius, sizeDot, sizeCell }, duration, dateCells) => {
     const svgElements = [];
     const styles = [
         `.c{
@@ -157,6 +220,12 @@ const createGrid = (cells, { sizeDotBorderRadius, sizeDot, sizeCell }, duration)
             rx: sizeDotBorderRadius,
             ry: sizeDotBorderRadius,
         }));
+    }
+    // Add labels if date cells are provided
+    if (dateCells) {
+        const labels = createLabels(dateCells, sizeCell);
+        svgElements.push(...labels.svgElements);
+        styles.push(...labels.styles);
     }
     return { svgElements, styles };
 };
@@ -256,7 +325,7 @@ const createSvg = (grid, cells, chain, drawOptions, animationOptions) => {
     const duration = animationOptions.frameDuration * chain.length;
     const livingCells = createLivingCells(grid, chain, cells);
     const elements = [
-        createGrid(livingCells, drawOptions, duration),
+        createGrid(livingCells, drawOptions, duration, cells),
         createStack(livingCells, drawOptions, grid.width * drawOptions.sizeCell, (grid.height + 2) * drawOptions.sizeCell, duration),
         createSnake(chain, drawOptions, duration),
     ];

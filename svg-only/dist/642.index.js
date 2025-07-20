@@ -36,7 +36,64 @@ const pathRoundedRect_pathRoundedRect = (ctx, width, height, borderRadius) => {
 ;// CONCATENATED MODULE: ../draw/drawGrid.ts
 
 
+const drawLabels = (ctx, cells, o) => {
+    ctx.save();
+    // Set font style for labels
+    ctx.font =
+        '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+    ctx.fillStyle = "#57606a";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    // Draw weekday labels
+    const weekdays = ["", "Mon", "", "Wed", "", "Fri", ""];
+    weekdays.forEach((day, i) => {
+        if (day) {
+            ctx.save();
+            ctx.textAlign = "end";
+            ctx.fillText(day, -o.sizeCell * 0.5, i * o.sizeCell + o.sizeCell * 0.5);
+            ctx.restore();
+        }
+    });
+    // Draw month labels
+    const monthPositions = new Map();
+    const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ];
+    cells.forEach((cell) => {
+        if (cell.date && cell.y === 0) {
+            const date = new Date(cell.date);
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            if (!monthPositions.has(monthKey)) {
+                monthPositions.set(monthKey, cell.x);
+            }
+        }
+    });
+    monthPositions.forEach((x, monthKey) => {
+        const [, monthIndex] = monthKey.split("-");
+        const monthName = months[parseInt(monthIndex)];
+        ctx.save();
+        ctx.textAlign = "start";
+        ctx.fillText(monthName, x * o.sizeCell + o.sizeCell * 0.5, -o.sizeCell * 0.5);
+        ctx.restore();
+    });
+    ctx.restore();
+};
 const drawGrid_drawGrid = (ctx, grid, cells, o) => {
+    // Draw labels if cells have date information
+    if (cells && cells.length > 0 && "date" in cells[0]) {
+        drawLabels(ctx, cells, o);
+    }
     for (let x = grid.width; x--;)
         for (let y = grid.height; y--;) {
             if (!cells || cells.some((c) => c.x === x && c.y === y)) {
